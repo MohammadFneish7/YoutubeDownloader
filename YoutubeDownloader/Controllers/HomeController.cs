@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Reflection;
@@ -17,9 +18,16 @@ namespace YoutubeDownloader.Controllers
             _logger = logger;
             Counter = counter;
         }
-
-        public IActionResult Index()
+        [Route("")]
+        [Route("watch/{v?}")]
+        [Route("Home")]
+        [Route("Home/Index")]
+        public IActionResult Index(string? v)
         {
+            if(!string.IsNullOrEmpty(v))
+                ViewBag.url = "https://www.youtube.com/watch?v=" + v;
+            else
+                ViewBag.url = string.Empty;
             return View();
         }
 
