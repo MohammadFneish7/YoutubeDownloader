@@ -1,0 +1,177 @@
+﻿@inject Counter Counter
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta name="description" content="YouTube downloader offers free and fast way to save YouTube videos in mp4, mp3, m4a and many other formats. It’s the most convenient YouTube video downloader you’ve ever tried!">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Download Youtube Videos for Free - SaveFrom.net">
+    <meta property="og:description" content="YouTube downloader offers free and fast way to save YouTube videos in mp4, mp3, m4a and many other formats. It’s the most convenient YouTube video downloader you’ve ever tried!">
+
+    <title>Download Youtube Videos for Free - Youtube Downloader</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/YoutubeDownloader.styles.css" asp-append-version="true" />
+</head>
+<body style="background:url('./images/bg.jpg');background-position: center;">
+    <div style="position:absolute;top: 35px;width: 100%;text-align: center;font-size: x-large;font-family: cursive;color: cornflowerblue;"><span id="counter">@Counter.Count.ToString("N0")</span> Parse Requests</div>
+    <div style="position:absolute;top: 83px;width: 100%;text-align: center;">Contact Us: <i class="bi-envelope-fill"></i> Mohammadfneish7@gmail.com | <i class="bi-telephone-forward-fill"></i> +961 70434962 Parse Requests</div>
+    @*<canvas class="background"></canvas>*@
+    <div class="container">
+        <main role="main" class="pb-3">
+            <div id="column-div" style="margin-top: 125px;align-items: center;display: flex;flex-direction: column;width: 100%;">
+                <h1 class="h1" style="font-family:Masiku;color: #0084ff;opacity: 0.8;">
+                    <img src="~/images/logo.png" width="80" height="80" style="margin-right: -17px;margin-top: -12px;margin-left: -17px;"/> Youtube Downloader
+                </h1>
+                <div id="video-div" width="80" height="80" class="container" style="display: contents;">
+                    <div style="max-width: 445px;width: 100%;height: 250px;text-align: center;vertical-align: middle;border: 3px dashed gray;padding-top: 109px;font-weight: bold;color: gray;">
+                        Place Your Advertisement Here
+                    </div>
+                </div>
+                <div style="align-items: center;display: flex;flex-direction: row;width: 100%;max-width: 600px;margin-top:15px">
+                    <input id="input-video-url" class="form-control" style="margin-right: 5px;text-align: center;" placeholder="PASTE YOUR YOUTUBE VIDEO URL HERE">
+                    <button id="btn-process" class="btn btn-primary" style="white-space: nowrap;" onclick="parse()">
+                        <img id="action-img" style="display:none; margin-right:5px" src="~/images/loading.gif" width="20" height="20" /><p style="display: inline;" id="action-label">Parse URL</p>
+                    </button>
+                </div>
+                
+                <p>By using our service you are accepting our <a asp-area="" asp-controller="Home" asp-action="Privacy">terms of service</a>.</p>
+                <div style="max-width: 550px;overflow: auto;width: 100%;">
+                    <table id="result-table" style="display:none;width: 100%;text-align: center;color: #383838;" class="table-responsive">
+                        <thead style="border-bottom: 1px solid;">
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Extension</th>
+                                <th scope="col">Resolution</th>
+                                <th scope="col">Bitrate</th>
+                                <th scope="col">Size</th>
+                                <th scope="col">Download</th>
+                            </tr>
+                        </thead>
+                        <tbody style="border-top: 7px solid transparent;">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @*<script src="~/lib/particles/dist/particles.js"></script>*@
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+
+        String.prototype.replaceAll = function(strReplace, strWith) {
+            // See http://stackoverflow.com/a/3561711/556609
+            var esc = strReplace.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+            var reg = new RegExp(esc, 'ig');
+            return this.replace(reg, strWith);
+        };
+
+        //window.onload = function() {
+        //  Particles.init({
+        //    selector: '.background',
+        //    connectParticles: true
+        //  });
+        //};
+
+        $(document).ready(function () {
+            $("#input-video-url").on('input', function(){
+                $("#video-div").empty();
+                $('#video-div').append('<iframe id="video-frame" style="max-width: 445px;" width="100%" height="250" src="' + $("#input-video-url").val().replaceAll('.com/watch?v=', '.com/embed/') + '" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>');
+                $('#result-table').hide();
+                $('#result-table > tbody').empty();
+            });
+        });
+
+        function parse(){
+            $("#action-img").show();
+            $('#btn-process').attr('disabled','disabled');
+            $("#input-video-url").attr('disabled','disabled');
+            $("#action-label").text('Processing...');
+            $('#result-table > tbody').empty();
+            $('#result-table').hide();
+            var url = $("#input-video-url").val();
+            $.ajax({
+                url: './Home/Parse?videourl=' + $("#input-video-url").val(),
+                type: 'POST',
+                success: function (data) {
+                    try{
+                        let res = JSON.parse(data);
+                        $('#counter').text(numberWithCommas(res.CountRequests))
+                        res.FormatInfos.forEach(function (item, i) {
+                            $('#result-table > tbody').append('<tr><th scope="row"><i class="' + item.Icon + '"></i></th><td>' + item.Extension + '</td><td>' + item.Resolution + '</td><td>' + item.Bitrate + '</td><td>' + item.Size + '</td><td><button data-url="' + url + '" data-id="' + item.ID + '" data-meme="' + item.MEME + '" class="btn btn-primary" onclick="download(event)" style="width: 100%;"><i class="bi bi-download" style="margin-right:5px"></i><span>Download</span><img style="display:none; margin-left:5px" src="./images/loading.gif" width="20" height="20" /></button></td></tr>')
+                        });
+                        $('#result-table').show();
+                    }catch(err){
+                        console.error(err)
+                        console.error(data)
+                        alert("Failed to parse video, please try again later!");
+                    }
+                    done();
+                },
+                error: function (request, error) {
+                    console.error(request)
+                    console.error(error)
+                    alert("Failed to parse video, please try again later!");
+                    done();
+                }
+            });
+        }
+
+        function numberWithCommas(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function download(e){
+            $(e.target).parent().find('img').first().show();
+            $(e.target).attr('disabled', 'disabled');
+
+            $.ajax({
+                url: './Home/Download?videourl=' + $(e.target).parent().attr('data-url') + '&formatId=' + $(e.target).parent().attr('data-id'),
+                type: 'POST',
+                success: function (data) {
+                    try{
+                        $(e.target).parent().find('img').first().hide();
+                        $(e.target).removeAttr('disabled');
+                        downloadURI(data, 'ytdwn-video', $(e.target).parent().attr('data-meme'));
+                    } catch (err) {
+                        console.error(err)
+                        console.error(data)
+                        alert("Failed to get download link, please try again later!");
+                    }
+                },
+                error: function (request, error) {
+                    console.error(request)
+                    console.error(error)
+                    alert("Failed to get download link, please try again later!");
+                    $(e.target).parent().find('img').first().hide();
+                    $(e.target).removeAttr('disabled');
+                }
+            });
+        }
+
+        function downloadURI(uri, name, meme) {
+            var link = document.createElement("a");
+            link.download = name;
+            link.href = uri;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            delete link;
+        }
+
+        function done(){
+            $("#action-img").hide();
+            $("#action-label").text('Parse URL');
+            $('#btn-process').removeAttr('disabled');
+            $("#input-video-url").removeAttr('disabled');
+        }
+    </script>
+</body>
+</html>
