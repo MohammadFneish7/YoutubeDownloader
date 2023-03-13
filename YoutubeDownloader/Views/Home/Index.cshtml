@@ -24,94 +24,193 @@
     <title>Download Youtube Videos for Free - YoutubeFD.com</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/lib/fontawesome-free-6.3.0-web/css/all.min.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/YoutubeDownloader.styles.css" asp-append-version="true" />
+
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
 </head>
-<body style="background:url('./images/bg.jpg');background-position: center;">
-    <div style="position:absolute;top: 35px;width: 100%;text-align: center;font-size: x-large;font-family: cursive;color: cornflowerblue;"><span id="counter">@Counter.Count.ToString("N0")</span> Parse Requests</div>
-    <div style="position:absolute;top: 83px;width: 100%;text-align: center;"><i class="bi-envelope-fill"></i> Mohammadfneish7@gmail.com | <i class="bi-telephone-forward-fill"></i> +961 70434962</div>
-    @*<canvas class="background"></canvas>*@
-    <div class="container">
-        <main role="main" class="pb-3" style="display: flex;flex-direction: column;align-items: center;">
-            <div id="column-div" style="margin-top: 125px;align-items: center;display: flex;flex-direction: column;width: 100%;">
-                <h1 class="h1" style="font-family:Masiku;color: red;opacity: 0.8;">
-                    <img src="~/images/logo.png" width="80" height="80" style="margin-right: -17px;margin-top: -12px;margin-left: -17px;"/> 
-                    Youtube<span style="color: #0084ff;">FD</span><span style="color: #282828;">.com</span>
-                </h1>
-                <p style="font-weight: bold;color: #ff6464;text-align: center;">The best and fastest free youtube downloader ever made 🤩!!</p>
-                <img src="~/images/guid.jpg" style="border-radius: 5px;margin-bottom: 10px;max-width: 100%;width: 610px;" />
-                <div id="ad-center-div" class="container" style="display: contents;">
-                    <div id="awn-z6596594" style="width: 610px;max-width: 100%;"></div>
-@*                    <div style="max-width: 610px;width: 100%;height: 250px;text-align: center;vertical-align: middle;border: 3px dashed gray;padding-top: 109px;font-weight: bold;color: gray;">
-                        Place Your Advertisement Here
-                    </div>*@
-                </div>
-                <div style="align-items: center;display: flex;flex-direction: row;width: 100%;max-width: 610px;margin-top:15px">
-                    <input id="input-video-url" class="form-control" style="margin-right: 5px;text-align: center;" placeholder="PASTE YOUR YOUTUBE VIDEO URL HERE" value="@ViewBag.url">
-                    <button id="btn-process" class="btn btn-primary" style="white-space: nowrap;" onclick="parse()" disabled="disabled">
-                        <img id="action-img" style="display:none; margin-right:5px" src="~/images/loading.gif" width="20" height="20"/><p style="display: inline;" id="action-label">Parse URL</p>
-                    </button>
-                </div>
-                <p style="text-align: center;font-style: italic;">By using our service you are accepting our <a asp-area="" asp-controller="Home" asp-action="Privacy">terms of service</a>.</p>
-                <div id="video-div"class="container" style="display: contents;margin-top: 10px;">
-                </div>
-                <div id="result-container" style="display:none;max-width: 610px;overflow: auto;width: 100%;margin-top: 15px;border: 1px dashed gray;padding: 5px;">
-                    <table style="width: 100%;text-align: center;color: #383838;" class="table-responsive">
-                        <thead style="border-bottom: 1px solid;">
-                            <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">Extension</th>
-                                <th scope="col">Resolution</th>
-                                <th scope="col">Bitrate</th>
-                                <th scope="col">Size</th>
-                                <th scope="col">Convert</th>
-                            </tr>
-                        </thead>
-                        <tbody style="border-top: 7px solid transparent;">
-                        </tbody>
-                    </table>
+<body>
+    <main>
+        <section id="main" class="jumbotron mb-0 pb-3 bg-primary">
+            <div class="search-block-default-height">
+                <div class="container text-white h-100 container-search">
+                    <div class="align-items-center text-center pl-lg-5">
+                        <h1 class="mb-3 mt-3 main_title"><img loading="lazy" src="/images/logo.png" alt="" width="64" height="64">YouTube <span style="color:#dc3545">F</span>ree <span style="color:#dc3545">D</span>ownloader</h1>
+
+                        <div id="m-form" class="row justify-content-center" style="display: flex;flex-direction: column;align-items: center;">
+                            <div class="col-12 col-md-10 col-lg-6">
+                                <div class="card-body row no-gutters align-items-center search_form">
+                                    <div class="col">
+                                        <div id="div_id_url" class="form-group">
+                                            <div>
+                                                <input type="text" style="height: 47px;" name="url" placeholder="Paste your video link here" autofocus="autofocus" required="required" id="input-video-url" class="textinput textInput form-control" value="@ViewBag.url">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <button id="btn-process" class="btn btn-lg btn-danger" onclick="parse()" disabled="disabled">
+                                            <span class="d-none d-md-inline">Download</span>
+                                            <i class="fas fa-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <span id="counter">@Counter.Count.ToString("N0")</span> downloaded videos so far!
+                            </div>
+                            <img id="action-img" loading="lazy" src="~/images/loader.svg" width="60" height="60" style="width: 120px;height: 60px; display: none">
+                            <div id="video-div" class="container" style="display: contents;margin-top: 10px;">
+                            </div>
+                            <div id="result-container" style="display:none;max-width: 610px;overflow: auto;width: 100%;margin-top: 15px;padding: 5px;">
+                                <table style="width: 100%;text-align: center;background: aliceblue;" class="table table-sm table-striped">
+                                    <thead style="border-bottom: 1px solid;">
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Type</th>
+                                            <th scope="col">Ext</th>
+                                            <th scope="col">Resolution</th>
+                                            <th scope="col">Bitrate</th>
+                                            <th scope="col">Size</th>
+                                            <th scope="col">Download</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="border-top: 7px solid transparent;">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="dl-container" style="display:none; margin-top: 10px;max-width: 610px;border-radius: 10px;background: #3ec1ff;padding: 10px;padding-top: 10px;padding-bottom: 5px;">
+                                <p style="text-align:center;color: white;font-weight: 400;">Your file is ready, right-click (or '⋮') on the <i id="dl-type">Video</i> below and select <i style="color:black">'Save <i id="dl-type-cap">Video</i> As'</i></p>
+                                <div id="dl-div" style="width:100%">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div id="dl-container" class="container" style="display:none; margin-top: 10px;max-width: 610px;border-radius: 10px;background: #3ec1ff;padding: 10px;padding-top: 10px;padding-bottom: 5px;">
-                <p style="text-align:center;color: white;font-weight: 400;">Your file is ready, right-click (or '⋮') on the <i id="dl-type">Video</i> below and select <i style="color:black">'Save <i id="dl-type-cap">Video</i> As'</i></p>
-                <div id="dl-div" style="width:100%">
-
+        </section>
+        <section class="container mt-5 mb-5 align-items-center b-instruction how-to-mp4">
+            <div class="row">
+                <div class="col-md-12 col-lg-12">
+                    <div class="media">
+                        <div class="media-body">
+                            <p class="text-muted">Being the third most popular website in the world, YouTube offers an excellent viewer experience to its users. What it can’t provide is a YouTube video download. That is why youtubefd is here to help you out!</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </main>
-    </div>
+            <h5 class="text-muted mb-0 text-center">Supported Platforms:</h5>
+            <div class="row justify-content-center">
+                <div class="col-6 col-sm-2 p-4 text-center">
+                    <img src="~/images/windows.svg" alt="" width="150" height="150">
+                </div>
+                <div class="col-6 col-sm-2 p-4 text-center">
+                    <img src="~/images/apple.svg" alt="" width="150" height="150">
+                </div>
+                <div class="col-6 col-sm-2 p-4 text-center">
+                    <img src="~/images/android.svg" alt="" width="150" height="150">
+                </div>
+                <div class="col-6 col-sm-2 p-4 text-center">
+                    <img src="~/images/linux.svg" alt="" width="150" height="150">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 col-lg-12">
+                    <div class="media">
+                        <div class="media-body">
+                            <p class="text-muted text-left">With our YouTube video downloader, you can select videos and download them free of charge! You can get high-quality videos in MP4, MP3, SQ, HD, Full HD quality, and other formats. Our application works both on PC and mobile, allowing you to use it anywhere you are!</p>
+                            <p class="text-muted text-left">YouTube video download has never been so simple!</p>
+                            <p class="text-muted text-center">Want to know more? You can find our download instructions below.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="container mt-5 mb-5 align-items-center b-instruction how-to-mp4">
+            <h2 class="col-12 text-center mb-4">How to download YouTube videos online</h2>
+            <div class="row text-center justify-content-center">
+                <div class="col-sm-6 col-lg-4">
+                    <div class="media">
+                        <div class="media-body">
+                            <div class="img mx-auto mb-4 pb-1 mb-lg-0 col-10 col-sm-12 h-auto">
+                                <picture>
+                                    <img loading="lazy" src="~/images/howto2.png" alt="" width="225" height="180">
+                                </picture>
+                            </div>
+                            <p class="text-muted">Copy the link to the video and paste it into the input line.</p>
+                        </div>
+                    </div>
 
-    @* Amazon ad  div*@
-    <div id="amzn-assoc-ad-5e8234b1-3d32-4c7a-ab00-ccb9369ee1f2"></div>
-    @* end *@
+                </div>
+                <div class="col-sm-6 col-lg-4">
+                    <div class="media">
+                        <div class="media-body">
+                            <div class="img mx-auto mb-4 pb-1 mb-lg-0 col-10 col-sm-12 h-auto">
+                                <picture>
+                                    <img loading="lazy" src="~/images/howto3.png" alt="" width="225" height="180">
+                                </picture>
+                            </div>
+                            <p class="text-muted">Click "Download" and wait for the video to be ready.</p>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-sm-6 col-lg-4">
+                    <div class="media">
+                        <div class="media-body">
+                            <div class="img mx-auto mb-4 pb-1 mb-lg-0 col-10 col-sm-12 h-auto">
+                                <picture>
+                                    <img loading="lazy" src="~/images/howto4.png" alt="" width="225" height="180">
+                                </picture>
+                            </div>
+                            <p class="text-muted">Select the desired download options and click "Download".</p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+        <section class="how-to-use container">
+            <h2 class="text-center">
+                How to Use YouTubeFD Short Domain
+            </h2>
+            <ul>
+                <li>
+                    <h3>Open Youtube video</h3>
+                    <img src="~/images/how_can_i_save_1.png" alt="">
+                    <p>Open a YouTube video and find its URL.</p>
+                </li>
+                <li>
+                    <h3>Add "fd" after the video URL</h3>
+                    <img src="~/images/how_can_i_save_2.png" alt="">
+                    <p>Add "fd" after the URL of the video to start the download.</p>
+                </li>
+                <li>
+                    <h3>Your download will start</h3>
+                    <img src="~/images/how_can_i_save_3.png" alt="">
+                    <p>Сlick "Enter" and you will be redirected to the download page.</p>
+                </li>
+            </ul>
+        </section>
+    </main>
+    <footer class="bg-black pb-5 pt-4 mt-auto">
+        <div class="row justify-content-center text-center mb-3">
+            <div class="col-md-12">
+                <span class="d-block mt-3 text-gray">
+                    © 2023 YouTube Downloader,
+                    made with
+                    <i class="fas fa-heart text-danger"></i> by YoutubeFD.
+                </span>
+                <span>
+                    <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+                </span>
+            </div>
+        </div>
+    </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/fontawesome-free-6.3.0-web/js/all.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
-
-    @* Amazon ad *@
-    <script async src="//z-na.amazon-adsystem.com/widgets/onejs?MarketPlace=US&adInstanceId=5e8234b1-3d32-4c7a-ab00-ccb9369ee1f2"></script>
-    @* end *@
-
-    @* Adcash ad auto *@
-    <script data-cfasync="false" type="text/javascript" data-adel="atag" src="//acacdn.com/script/atg.js" czid="6wskumcpc8"></script>
-    @* end *@
-
-    @* Adcash ad native *@
-    <script data-cfasync="false" type="text/javascript">
-        var adcashMacros = {};
-        var zoneNativeSett = { container: "awn", baseUrl: "discovernative.com/script/native.php", r: [6596594] };
-        var urls = { cdnUrls: ["//superonclick.com", "//geniusonclick.com"], cdnIndex: 0, rand: Math.random(), events: ["click", "mousedown", "touchstart"], useFixer: !0, onlyFixer: !1, fixerBeneath: !1 }; function acPrefetch(e) { var t, n = document.createElement("link"); t = void 0 !== document.head ? document.head : document.getElementsByTagName("head")[0], n.rel = "dns-prefetch", n.href = e, t.appendChild(n); var r = document.createElement("link"); r.rel = "preconnect", r.href = e, t.appendChild(r) } var nativeInit = new function () { var a = "", i = Math.floor(1e12 * Math.random()), o = Math.floor(1e12 * Math.random()), t = window.location.protocol, c = { _0: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=", encode: function (e) { for (var t, n, r, a, i, o, c = "", s = 0; s < e.length;)a = (t = e.charCodeAt(s++)) >> 2, t = (3 & t) << 4 | (n = e.charCodeAt(s++)) >> 4, i = (15 & n) << 2 | (r = e.charCodeAt(s++)) >> 6, o = 63 & r, isNaN(n) ? i = o = 64 : isNaN(r) && (o = 64), c = c + this._0.charAt(a) + this._0.charAt(t) + this._0.charAt(i) + this._0.charAt(o); return c } }; this.init = function () { e() }; var e = function () { var e = document.createElement("script"); e.setAttribute("data-cfasync", !1), e.src = "//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js", e.onerror = function () { !0, r(), n() }, e.onload = function () { nativeForPublishers.init() }, nativeForPublishers.attachScript(e) }, n = function () { "" !== a ? s(i, t) : setTimeout(n, 250) }, r = function () { var t = new (window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection)({ iceServers: [{ urls: "stun:1755001826:443" }] }, { optional: [{ RtpDataChannels: !0 }] }); t.onicecandidate = function (e) { !e.candidate || e.candidate && -1 == e.candidate.candidate.indexOf("srflx") || !(e = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(e.candidate.candidate)[1]) || e.match(/^(192\.168\.|169\.254\.|10\.|172\.(1[6-9]|2\d|3[01]))/) || e.match(/^[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7}$/) || (a = e) }, t.createDataChannel(""), t.createOffer(function (e) { t.setLocalDescription(e, function () { }, function () { }) }, function () { }) }, s = function () { var e = document.createElement("script"); e.setAttribute("data-cfasync", !1), e.src = t + "//" + a + "/" + c.encode(i + "/" + (i + 5)) + ".js", e.onload = function () { for (var e in zoneNativeSett.r) d(zoneNativeSett.r[e]) }, nativeForPublishers.attachScript(e) }, d = function (e) { var t = "jsonp" + Math.round(1000001 * Math.random()), n = [i, parseInt(e) + i, o, "callback=" + t], r = "http://" + a + "/" + c.encode(n.join("/")); new native_request(r, e, t).jsonp() } }, nativeForPublishers = new function () { var n = this, e = Math.random(); n.getRand = function () { return e }, this.getNativeRender = function () { if (!n.nativeRenderLoaded) { var e = document.createElement("script"); e.setAttribute("data-cfasync", "false"), e.src = urls.cdnUrls[urls.cdnIndex] + "/script/native_render.js", e.onerror = function () { throw new Error("cdnerr") }, e.onload = function () { n.nativeRenderLoaded = !0 }, n.attachScript(e) } }, this.getNativeResponse = function () { if (!n.nativeResponseLoaded) { var e = document.createElement("script"); e.setAttribute("data-cfasync", "false"), e.src = urls.cdnUrls[urls.cdnIndex] + "/script/native_server.js", e.onerror = function () { throw new Error("cdnerr") }, e.onload = function () { n.nativeResponseLoaded = !0 }, n.attachScript(e) } }, this.attachScript = function (e) { var t; void 0 !== document.scripts && (t = document.scripts[0]), void 0 === t && (t = document.getElementsByTagName("script")[0]), t.parentNode.insertBefore(e, t) }, this.fetchCdnScripts = function () { if (urls.cdnIndex < urls.cdnUrls.length) try { n.getNativeRender(), n.getNativeResponse() } catch (e) { urls.cdnIndex++, n.fetchCdnScripts() } }, this.scriptsLoaded = function () { if (n.nativeResponseLoaded && n.nativeRenderLoaded) { var e = []; for (zone in zoneNativeSett.r) document.getElementById(zoneNativeSett.container + "-z" + zoneNativeSett.r[zone]) && (e[zoneNativeSett.r[zone]] = new native_request("//" + zoneNativeSett.baseUrl + "?nwpsv=1&", zoneNativeSett.r[zone]), e[zoneNativeSett.r[zone]].build()); for (var t in e) e[t].jsonp("callback", (e[t], function (e, t) { setupAd(zoneNativeSett.container + "-z" + t, e) })) } else setTimeout(n.scriptsLoaded, 250) }, this.init = function () { var e; if (n.insertBotTrapLink(), 0 === window.location.href.indexOf("file://")) for (e = 0; e < urls.cdnUrls.length; e++)0 === urls.cdnUrls[e].indexOf("//") && (urls.cdnUrls[e] = "http:" + urls.cdnUrls[e]); for (e = 0; e < urls.cdnUrls.length; e++)acPrefetch(urls.cdnUrls[e]); n.fetchCdnScripts(), n.scriptsLoaded() }, this.insertBotTrapLink = function () { var e = document.createElement("a"); e.href = window.location.protocol + "//discovernative.com/al/visit.php?al=1,4", e.style.display = "none", e.style.visibility = "hidden", e.style.position = "relative", e.style.left = "-1000px", e.style.top = "-1000px", e.style.color = "#fff", e.link = '<a href="http://discovernative.com/al/visit.php?al=1,5"></a>', e.innerHTML = "", document.body.appendChild(e) } }; nativeInit.init();
-    </script>
-    <a href="https://discovernative.com/al/visit.php?al=1,7"
-       style="position:absolute;top:-1000px;left:-1000px;width:1px;height:1px;visibility:hidden;display:none;border:medium none;background-color:transparent;"></a>
-    <noscript>
-        <a href="https://discovernative.com/al/visit.php?al=1,6"
-           style="position:absolute;top:-1000px;left:-1000px;width:1px;height:1px;visibility:hidden;display:none;border:medium none;background-color:transparent;"></a>
-    </noscript>
-    @* end *@
 
 </body>
 </html>

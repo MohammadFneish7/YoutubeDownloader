@@ -35,3 +35,17 @@ body {
     z-index: -10;
     opacity: 0.3;
 }
+
+.mytab {
+    position: fixed;
+    width: 100%;
+    max-width: unset;
+    max-height: unset;
+    left: 0;
+    top: 0;
+    z-index: 10000;
+    background: white;
+    bottom: 0;
+    height: 100vh;
+    overflow: auto;
+}

@@ -1,11 +1,17 @@
 ﻿using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using System.Diagnostics;
+using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
+using YoutubeDownloader.Helpers;
 using YoutubeDownloader.Models;
+using YoutubeExplode;
+using YoutubeExplode.Videos.Streams;
 
 namespace YoutubeDownloader.Controllers
 {
@@ -13,6 +19,7 @@ namespace YoutubeDownloader.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly Counter Counter;
+        private readonly string pass = "ZSUyQ2dpciUyQ2NsZW4lMkNkdXIlMkNsbXQmc2lnPU";
         public HomeController(ILogger<HomeController> logger, Counter counter)
         {
             _logger = logger;
@@ -28,6 +35,23 @@ namespace YoutubeDownloader.Controllers
                 ViewBag.url = "https://www.youtube.com/watch?v=" + v;
             else
                 ViewBag.url = string.Empty;
+
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("access_token")))
+            {
+                var token = Cryptography.Encrypt(DateTime.Now.AddHours(1).ToString(), pass);
+                HttpContext.Session.SetString("access_token", token);
+            }
+            else
+            {
+                var token = Cryptography.Decrypt(HttpContext.Session.GetString("access_token"), pass);
+                var exp = DateTime.Parse(token);
+                if(exp < DateTime.Now)
+                {
+                    token = Cryptography.Encrypt(DateTime.Now.AddHours(1).ToString(), pass);
+                    HttpContext.Session.SetString("access_token", token);
+                }
+            }
+
             return View();
         }
 
@@ -37,78 +61,92 @@ namespace YoutubeDownloader.Controllers
         }
 
         [HttpPost]
-        public string Parse([FromQuery] string videourl)
+        public async Task<IActionResult> Parse([FromQuery] string videoUrl)
         {
             try
             {
+                if (string.IsNullOrEmpty(HttpContext.Session.GetString("access_token")))
+                {
+                    return Forbid();
+                }
+                else
+                {
+                    var token = Cryptography.Decrypt(HttpContext.Session.GetString("access_token"), pass);
+                    var exp = DateTime.Parse(token);
+                    if (exp < DateTime.Now)
+                    {
+                        return Forbid();
+                    }
+                }
+
                 ParseResponse parseResponse = new ParseResponse();
                 parseResponse.CountRequests = Counter.Increment();
 
-                var output = Execute_ytdl($"{videourl} --list-formats");
+                var youtube = new YoutubeClient();
 
-                var infos = new List<FormatInfo>();
-                var start = false;
-                foreach (var line in output.Split('\n'))
+                var video = await youtube.Videos.GetAsync(videoUrl);
+
+                var title = video.Title; // "Collections - Blender 2.80 Fundamentals"
+                foreach (char c in Path.GetInvalidFileNameChars())
                 {
-                    if (!start && line.Contains("format code  extension  resolution note"))
-                    {
-                        start = true;
-                        continue;
-                    }
+                    title = title.Replace(c, '_');
+                }
+                var author = video.Author.ChannelTitle; // "Blender"
+                var duration = video.Duration; // 00:07:20
+                var meme = "";
 
-                    if (!start)
-                        continue;
-
-                    if (line.Contains("video only"))
-                        continue;
-
-                    var pline = line.Replace("audio only", "Audio").Replace("(best)", "").Trim();
+                var streamManifest = await youtube.Videos.Streams.GetManifestAsync(videoUrl);
+                var infos = new List<FormatInfo>();
+                int id = 0;
+                bool hasMp3 = false;
+                foreach(var inf in streamManifest.Streams)
+                {
+                    id++;
+                    string cont = inf.Container.ToString();
                     var fi = new FormatInfo();
-
-                    var parts = Regex.Split(pline, "[ \\\\t]+");
-                    if(parts.Length >= 5)
+                    if(inf.GetType() == typeof(MuxedStreamInfo))
                     {
-                        fi.ID = parts[0];
-                        fi.Extension = parts[1];
-                        fi.Resolution = parts[2];
-                        if (fi.Resolution.Trim().Equals("Audio"))
-                            fi.Icon = "bi-mic-fill";
-                        else
-                            fi.Icon = "bi-camera-reels-fill";
-                        fi.Bitrate = parts[4];
-                        fi.Size = parts[parts.Length - 1];
-                        fi.MEME = (fi.Resolution.Equals("audio", StringComparison.InvariantCultureIgnoreCase) ? "audio" : "video") + "/" + fi.Extension;
-                        infos.Add(fi);
+                        meme = "video/";
+                        fi.MEME = "Video";
+                        fi.Icon = "bi-camera-reels-fill";
+                        fi.Resolution = ((MuxedStreamInfo)inf).VideoResolution.ToString();
                     }
+                    else if (inf.GetType() == typeof(VideoOnlyStreamInfo))
+                    {
+                        meme = "video/";
+                        fi.MEME = "Video Only";
+                        fi.Icon = "bi-camera-reels-fill";
+                        fi.Resolution = ((VideoOnlyStreamInfo)inf).VideoResolution.ToString();
+                    }
+                    else if (inf.GetType() == typeof(AudioOnlyStreamInfo))
+                    {
+                        if (!hasMp3)
+                        {
+                            cont = "mp3";
+                            hasMp3 = true;
+                        }
+                        meme = "audio/";
+                        fi.MEME = "Audio";
+                        fi.Icon = "bi-mic-fill";
+                        fi.Resolution = "";
+                    }
+                    meme += cont;
+                    fi.Extension = cont;
+                    fi.Bitrate = inf.Bitrate.ToString();
+                    fi.Url = "/download?v=" + Convert.ToBase64String(Encoding.UTF8.GetBytes(inf.Url + "&downfilename=" + title + "." + fi.Extension + ";" + meme));
+                    fi.Size = inf.Size.ToString();
+                    infos.Add(fi);
                 }
 
                 parseResponse.FormatInfos = infos;
 
-                return JsonConvert.SerializeObject(parseResponse);
+                return Ok(JsonConvert.SerializeObject(parseResponse));
 
             }
             catch (Exception ex)
             {
-                return $"{ex}";
+                return Ok($"{ex}");
             }
-        }
-
-        [HttpPost]
-        public string Download([FromQuery] string videourl, string formatId)
-        {
-            try
-            {
-                
-                var ouptut = Execute_ytdl($"-f {formatId} {videourl} -g");
-
-                return ouptut;
-
-            }
-            catch (Exception ex)
-            {
-                return $"{ex}";
-            }
-
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -117,28 +155,5 @@ namespace YoutubeDownloader.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        private string Execute_ytdl(string args)
-        {
-            string binName = "ytdl/ytdl.exe";
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                binName = "ytdl/youtube-dl";
-            }
-            Process cmd = new Process();
-            cmd.StartInfo.FileName = Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName, binName);
-            cmd.StartInfo.RedirectStandardOutput = true;
-            cmd.StartInfo.RedirectStandardError = true;
-            cmd.StartInfo.Arguments = args;
-            cmd.StartInfo.CreateNoWindow = true;
-            cmd.StartInfo.UseShellExecute = false;
-            cmd.Start();
-
-            cmd.WaitForExit();
-            string? err = cmd.StandardError.ReadToEnd();
-            if (!string.IsNullOrEmpty(err))
-                throw new Exception(err);
-
-            return cmd.StandardOutput.ReadToEnd();
-        }
     }
 }

@@ -9,6 +9,7 @@
         public string Size { get; set; }
         public string MEME { get; set; }
 
+        public string Url { get; set; }
         public string Icon { get; set; }
 
     }
